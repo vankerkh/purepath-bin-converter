@@ -16,12 +16,21 @@ package ui;
 
 
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
+
+import javax.swing.text.BadLocationException;
+
 import ctrl.Converter;
+import ctrl.FileFormatException;
 
 
 
@@ -32,57 +41,141 @@ public class GUIControl implements ActionListener
 	
 	
 	//generic constructor
-	public GUIControl()
+	public GUIControl() throws BadLocationException
 	{
 		gui = new ConverterGUI(this);
 	}
+	
+	
+	//convert a single file
+	private void convert(String in, String out) throws IOException, FileFormatException
+	{
+		//read file
+		String cfg = new String();
+		Scanner scanner = new Scanner(new File(in));
+		cfg = scanner.useDelimiter("\\Z").next();
+		scanner.close();
 
+		//convert
+		byte[] bytes = Converter.cfgToBin(cfg);
+		
+		//write file
+		FileOutputStream output = new FileOutputStream(out,false);
+		output.write(bytes);
+		output.close();
+	}
+	
 	
 	@Override
 	//respond to user events
 	public void actionPerformed(ActionEvent ae) 
 	{
-		switch(ae.getActionCommand())
+		try
 		{
-			//attempt to convert
-			case(ConverterGUI.BTN_CONVERT):
+			switch(ae.getActionCommand())
 			{
-				if(!gui.getInputPath().isEmpty() && !gui.getOutputPath().isEmpty())
+				//attempt to convert
+				case(ConverterGUI.BTN_CONVERT):
 				{
-					try
+					if(!gui.getInputPath().isEmpty() && !gui.getOutputPath().isEmpty())
 					{
-						//read file
-						String cfg = new String();
-						Scanner scanner = new Scanner(new File(gui.getInputPath()));
-						cfg = scanner.useDelimiter("\\Z").next();
-						scanner.close();
-			
-						//convert
-						byte[] bytes = Converter.cfgToBin(cfg);
+						//determine operation mode
+						String inPath = gui.getInputPath();
+						String outPath = gui.getOutputPath();
+						File in = new File(inPath);
+						File out = new File(outPath);
 						
-						//write
-						FileOutputStream output = new FileOutputStream(gui.getOutputPath(),false);
-						output.write(bytes);
-						output.close();
-						gui.displayInfo("Conversion complete!");
+						//convert directory to directory
+						if (in.isDirectory() && out.isDirectory())
+						{
+							//prepare instance variables
+							File[] allFiles = in.listFiles();
+							int fail = 0;
+							int total = 0;
+							gui.println("Scanning source directory at " + inPath + " ...");
+							
+							//scan all files, try to convert any .cfg files
+							gui.setProgressBounds(0, allFiles.length);
+							gui.setProgress(0);
+							gui.showProgressText(true);
+							
+							
+							int i = 0;
+							for (File file : allFiles)
+							{
+								try
+								{
+									if (file.getName().matches(".+(.cfg)"))
+									{
+										total++;
+										String outName = Converter.convertFileName(file.getName());
+										String pathToWrite = (outPath.concat("\\" + outName));
+										convert(file.getAbsolutePath(), pathToWrite);
+										gui.println("[SUCCESS] " + file.getName() + " --> " + outName);
+									}
+								}
+								catch (FileFormatException e)
+								{
+									gui.println("[FAILURE] " + file.getName() + ": " + e.getMessage());
+									fail++;
+								}
+								
+								i++;
+								gui.setProgress(i);
+							}
+							
+							//print summary
+							gui.println("------------------------------");
+							gui.println("TOTAL FILES:  " + total);
+							gui.println("SUCCESSES:    "  + (total-fail));
+							gui.println("FAILURES:     " + fail);
+							gui.println("------------------------------");
+							gui.println("");
+						}
+						//convert file to file
+						else if (in.isFile() && (out.isFile() || !out.exists()))
+						{
+							try
+							{
+								convert(in.getAbsolutePath(), out.getAbsolutePath());
+								gui.println("[SUCCESS] " + in.getName() + " --> " + out.getName());
+								gui.println("");
+								gui.displayInfo(in.getName() + " converted to " + out.getName());
+							}
+							catch (FileFormatException e)
+							{
+								gui.println("[FAILURE] " + in.getName() + " --> " + out.getName());
+								gui.println(e.getMessage());
+								gui.println("");
+								gui.displayError(e.getMessage());
+							}
+						}	
+						//type mismatch error
+						else
+						{
+							String inType = in.isDirectory()?"DIRECTORY":"FILE";
+							String outType = out.isDirectory()?"DIRECTORY":"FILE";
+							gui.displayError("Type mismatch\nInput given as " + inType + ", Output give as " + outType + "\nInput and Output must both be valid files OR directories");
+						}
 					}
-					catch (Exception e)
+					//valid path needed 
+					else
 					{
-						gui.displayError(e.getMessage());
+						gui.displayError("A valid input and output must be selected.");
 					}
+					break;
 				}
-				else
+				
+				//exit program
+				case(ConverterGUI.BTN_CANCEL):
 				{
-					gui.displayError("A valid input and output must be selected.");
+					System.exit(0);
 				}
-				break;
 			}
+		}
+		catch (Exception e)
+		{
 			
-			//exit program
-			case(ConverterGUI.BTN_CANCEL):
-			{
-				System.exit(0);
-			}
 		}
 	}
 }
