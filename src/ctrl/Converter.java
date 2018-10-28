@@ -31,6 +31,8 @@ public class Converter
 	private static final String EXCEPTION = "> 00";
 	private static final byte FILE_START = (byte)0xE0;
 	
+	private static final String BASE = "allo-piano-dsp";
+	
 	
 	//generic constructor
 	private Converter() {}
@@ -103,11 +105,72 @@ public class Converter
 			}
 			else if (!lines[i].startsWith(COMMENT) && !lines[i].isEmpty())
 			{
-				throw new FileFormatException("line: " + (i+1) + " \"" + lines[i] + "\" -- unknown line format \"");
+				throw new FileFormatException("Line: " + (i+1) + " Unknown line format -- \"" + lines[i] + "\"");
 			}
 		}
 		
 		//return byte array from bin
 		return bin.toByteArray();
+	}
+
+	
+	//convert file name from TI .cfg to Volumio-readable .bin file
+	public static String convertFileName(String cfg) throws FileFormatException
+	{
+		// base_xo60_Rate44.cfg
+		if (cfg.matches("(\\w+_\\w+\\d_\\w+\\d.cfg)"))
+		{
+			//split into 3 values
+			String[] tmp = cfg.split("_");
+			if (tmp.length != 3)
+			{
+				throw new FileFormatException("Input file name must be of format base_labelnnn_Ratennn.cfg");
+			}
+			
+			//parse
+			String base = BASE;
+			String label = tmp[1];
+			String rate = tmp[2].split("\\.")[0];
+			
+			//process label
+			label = label.replaceAll("\\D", "");
+			if (label.length() > 5 || label.length() < 2)
+			{
+				throw new FileFormatException("Label numeric suffix must be between (inclusive) 2 and 5 digits");
+			}
+			label = label + "-0";
+			
+			//process rate
+			switch (rate)
+			{
+				case("Rate44"):
+					rate = "44100";
+					break;
+				case("Rate48"):
+					rate = "48000";
+					break;
+				case("Rate88"):
+					rate = "88200";
+					break;
+				case("Rate96"):
+					rate = "96000";
+					break;
+				case("Rate176"):
+					rate = "176400";
+					break;
+				case("Rate192"):
+					rate = "192000";
+					break;
+				default:
+					throw new FileFormatException("Unsupported rate value -- must be in list {Rate44,Rate48,Rate88,Rate96,Rate176,Rate192}");
+			}
+			
+			//return valid formated bin name
+			return base+"-"+rate+"-"+label+".bin";
+		}
+		else
+		{
+			throw new FileFormatException("Input file name must be of format base_labelnnn_Ratennn");
+		}
 	}
 }
