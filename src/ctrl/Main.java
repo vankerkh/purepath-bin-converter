@@ -18,6 +18,9 @@ package ctrl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Scanner;
+
+import javax.swing.text.BadLocationException;
+
 import ui.GUIControl;
 
 
@@ -55,7 +58,14 @@ public class Main
 		}
 		else
 		{
-			GUIControl gui = new GUIControl();
+			try
+			{
+				GUIControl gui = new GUIControl();
+			}
+			catch (BadLocationException e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 }
