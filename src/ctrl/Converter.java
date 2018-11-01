@@ -118,7 +118,7 @@ public class Converter
 	public static String convertFileName(String cfg) throws FileFormatException
 	{
 		// base_xo60_Rate44.cfg
-		if (cfg.matches("(\\w+_\\w+\\d_\\w+\\d.cfg)"))
+		if (cfg.matches("[a-zA-Z]+_[a-zA-Z]+\\d{2,5}_[a-zA-Z]+\\d+.cfg"))
 		{
 			//split into 3 values
 			String[] tmp = cfg.split("_");
