@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Scanner;
 
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.text.BadLocationException;
 
 import ui.GUIControl;
@@ -62,9 +64,13 @@ public class Main
 			{
 				GUIControl gui = new GUIControl();
 			}
-			catch (BadLocationException e)
+			catch (Exception e)
 			{
-				e.printStackTrace();
+				JOptionPane.showMessageDialog(new JFrame(), 
+						"A critical error has occured, and the converter application must close!\n\n"+e.getMessage(),
+						"Critical Error", 
+						JOptionPane.ERROR_MESSAGE);
+				System.exit(1);
 			}
 		}
 	}
