@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.text.BadLocationException;
 
 import ctrl.Converter;
@@ -41,7 +42,7 @@ public class GUIControl implements ActionListener
 	
 	
 	//generic constructor
-	public GUIControl() throws BadLocationException
+	public GUIControl() throws BadLocationException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException
 	{
 		gui = new ConverterGUI(this);
 	}

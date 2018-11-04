@@ -46,6 +46,8 @@ import ctrl.Converter;
 import ctrl.FileFormatException;
 
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 
 
@@ -56,7 +58,7 @@ public class ConverterGUI extends JFrame implements ActionListener
 	public static final String BTN_CANCEL = "btn/cancel";
 	
 	//declaring local static constants
-	private static final String WINDOW_NAME = "TI .cfg to .bin Converter";
+	private static final String WINDOW_NAME = "TI .cfg to Volumio .bin Converter";
 	private static final String BTN_INPUT = "btn/input";
 	private static final String BTN_OUTPUT = "btn/output";
 	private static final Font LABEL_FONT = new Font("Tahoma", Font.BOLD, 11);
@@ -74,7 +76,7 @@ public class ConverterGUI extends JFrame implements ActionListener
 
 	
 	//generic constructor
-	public ConverterGUI(ActionListener listener) throws BadLocationException
+	public ConverterGUI(ActionListener listener) throws BadLocationException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException
 	{
 		//set frame properties
 		this.setResizable(false);
@@ -194,7 +196,10 @@ public class ConverterGUI extends JFrame implements ActionListener
 		this.resetProgress();
 		controlPanel.add(progressBar);
 		
+		
+		//set visible
 		this.setVisible(true);
+		UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 	}
 	
 	
